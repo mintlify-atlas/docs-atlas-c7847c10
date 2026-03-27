@@ -1,0 +1,125 @@
+---
+title: 'Configuration'
+description: 'All configurable aspects of the Currency Converter project: API key, Java version, Gson dependency, compilation, and currency shortcuts.'
+---
+
+## API key
+
+The ExchangeRate-API key is hardcoded directly in `ConvertirMonedas.java`. You must replace the placeholder before the application can make live API calls.
+
+**Location:** `src/com/AnthonyChuan/Conversor/Metodos/ConvertirMonedas.java`, inside `valorConversion`:
+
+```java ConvertirMonedas.java
+// Before
+URI url = URI.create("https://v6.exchangerate-api.com/v6/YOUR_API_KEY/pair/" + moneda1 + "/" + moneda2);
+
+// After — replace YOUR_API_KEY with your actual key
+URI url = URI.create("https://v6.exchangerate-api.com/v6/abc123xyz/pair/" + moneda1 + "/" + moneda2);
+```
+
+To obtain a key:
+
+1. Go to [https://www.exchangerate-api.com](https://www.exchangerate-api.com) and create a free account.
+2. Your API key is shown on the dashboard immediately after sign-up.
+
+<Warning>
+  The API key is embedded as a plain string literal in source code. Do not commit this file to a public repository. Anyone with access to the source can use your key and exhaust your monthly quota. Consider reading the key from an environment variable or a local config file for any deployment beyond local development.
+</Warning>
+
+## Java version requirement
+
+The project requires **Java 17** or later. Two Java 17 features are used directly:
+
+- **Records** (`ConversorDAO` is declared as a `record`) — introduced in Java 16 as stable.
+- **`java.net.http` package** (`HttpClient`, `HttpRequest`, `HttpResponse`) — available since Java 11.
+
+Verify your installed version:
+
+```bash
+java -version
+javac -version
+```
+
+Both commands should report `17.x.x` or higher. If not, install JDK 17 from [https://adoptium.net](https://adoptium.net) or your OS package manager.
+
+## Gson dependency
+
+The project uses **Google Gson 2.11.0** to deserialize the JSON API response into a `ConversorDAO` record. There is no Maven or Gradle build file — the JAR must be placed on the classpath manually.
+
+**Download:**
+
+- Maven Central direct link: `https://repo1.maven.org/maven2/com/google/code/gson/gson/2.11.0/gson-2.11.0.jar`
+- Or search for `gson 2.11.0` at [https://search.maven.org](https://search.maven.org).
+
+**Project layout (recommended):**
+
+```
+Conversor/
+├── lib/
+│   └── gson-2.11.0.jar
+├── src/
+│   └── com/AnthonyChuan/Conversor/
+│       ├── DAO/ConversorDAO.java
+│       ├── Metodos/ConvertirMonedas.java
+│       ├── Metodos/Decisiones.java
+│       ├── Modelos/Conversor.java
+│       └── main.java
+└── out/
+```
+
+## Compile command
+
+Compile all source files at once, specifying the Gson JAR on the classpath and directing `.class` files to an output directory:
+
+```bash
+javac -cp lib/gson-2.11.0.jar -d out \
+  src/com/AnthonyChuan/Conversor/DAO/ConversorDAO.java \
+  src/com/AnthonyChuan/Conversor/Metodos/ConvertirMonedas.java \
+  src/com/AnthonyChuan/Conversor/Metodos/Decisiones.java \
+  src/com/AnthonyChuan/Conversor/Modelos/Conversor.java \
+  src/com/AnthonyChuan/Conversor/main.java
+```
+
+Run the compiled application:
+
+```bash
+java -cp "out:lib/gson-2.11.0.jar" com.AnthonyChuan.Conversor.main
+```
+
+<Note>
+  On Windows, use a semicolon (`;`) instead of a colon (`:`) as the classpath separator:
+  `java -cp "out;lib/gson-2.11.0.jar" com.AnthonyChuan.Conversor.main`
+</Note>
+
+## Currency shortcuts
+
+The application ships with four built-in shortcut numbers that map to ISO 4217 currency codes. These are defined in `Decisiones.java` using a `switch` statement inside both `moneda1()` and `moneda2()`.
+
+| Input | Currency code | Currency name |
+| --- | --- | --- |
+| `1` | `USD` | US Dollar |
+| `2` | `PEN` | Peruvian Sol |
+| `3` | `ARS` | Argentine Peso |
+| `4` | `COP` | Colombian Peso |
+
+If you enter any value other than `1`–`4`, it is passed through unchanged to the API URL. This means you can type any valid ISO 4217 code directly (e.g., `EUR`, `GBP`, `BRL`) and the application will attempt the conversion without needing a shortcut entry.
+
+To add a new shortcut, add a `case` to both `switch` blocks in `Decisiones.java`:
+
+```java Decisiones.java
+case "5": mon1 = "EUR"; break;
+```
+
+## Amount input
+
+The amount to convert is read as an `int` using `Scanner.nextInt()`:
+
+```java main.java
+int valorcambiar;
+// ...
+valorcambiar = teclado.nextInt();
+```
+
+<Note>
+  Only whole-number amounts are accepted. Entering a decimal value such as `10.5` causes a `java.util.InputMismatchException` and terminates the program. To support decimal input, change the variable declaration and scanner call to use `double` and `nextDouble()`.
+</Note>

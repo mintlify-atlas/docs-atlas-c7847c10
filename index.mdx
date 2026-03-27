@@ -1,97 +1,55 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: "Currency Converter with API"
+description: "A Java console application that converts between currencies in real time using live exchange rates from ExchangeRate-API."
 ---
 
-## Setting up
+Convert between world currencies instantly using live exchange rates. This Java 17 console application fetches real-time conversion rates from ExchangeRate-API and calculates accurate conversions for any ISO 4217 currency pair.
 
-Get your documentation site up and running in minutes.
-
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
-
-## Make it yours
-
-Design a docs site that looks great and empowers your users.
-
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
+<CardGroup cols={2}>
+  <Card title="Introduction" icon="book-open" href="/introduction">
+    Learn what this project does and what you need to get started
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Set up and run your first currency conversion in minutes
   </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
+  <Card title="How It Works" icon="gears" href="/architecture">
+    Understand the layered architecture and data flow
   </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
+  <Card title="Class Reference" icon="code" href="/class-reference">
+    Explore every class and method in the codebase
   </Card>
-</Columns>
+</CardGroup>
 
-## Create beautiful pages
+## What you can do
 
-Everything you need to create world-class documentation.
+<CardGroup cols={2}>
+  <Card title="Convert currencies" icon="arrow-right-arrow-left">
+    Enter an amount and select source and target currencies to get an instant converted result
+  </Card>
+  <Card title="Use menu shortcuts" icon="list">
+    Pick from USD, PEN, ARS, and COP using numbered shortcuts, or type any ISO 4217 code directly
+  </Card>
+  <Card title="Live exchange rates" icon="chart-line">
+    Every conversion fetches the current rate from ExchangeRate-API — no stale data
+  </Card>
+  <Card title="Open currency support" icon="globe">
+    Not limited to the menu — type any valid currency code like EUR, BRL, or JPY
+  </Card>
+</CardGroup>
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+## Get started
 
-## Need inspiration?
-
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+<Steps>
+  <Step title="Install Java 17">
+    Ensure you have JDK 17 or later installed on your machine.
+  </Step>
+  <Step title="Add the Gson dependency">
+    Download `gson-2.11.0.jar` and place it on your classpath before compiling.
+  </Step>
+  <Step title="Compile the project">
+    Compile all Java source files under `src/` with Gson on the classpath.
+  </Step>
+  <Step title="Run the application">
+    Launch `com.AnthonyChuan.Conversor.main` and follow the interactive prompts to convert a currency.
+  </Step>
+</Steps>

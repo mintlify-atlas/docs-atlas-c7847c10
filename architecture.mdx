@@ -1,0 +1,95 @@
+---
+title: 'Architecture'
+description: 'An overview of the layered architecture of the Currency Converter application and how data flows from user input to converted output.'
+---
+
+The Currency Converter is structured as a four-layer console application. Each layer has a single, well-defined responsibility, keeping the code modular and easy to follow.
+
+## Layers
+
+<CardGroup cols={2}>
+  <Card title="Entry Point" icon="play">
+    **`main.java`** — Bootstraps the application, wires all components together, reads user input via `Scanner`, and prints the final conversion result to the console.
+  </Card>
+  <Card title="Service / UI" icon="sliders">
+    **`Decisiones.java`** — Renders the currency menu and translates numeric menu selections (1–4) to ISO 4217 currency codes. **`ConvertirMonedas.java`** — Calls the ExchangeRate-API HTTP endpoint and returns the raw response as a `ConversorDAO`.
+  </Card>
+  <Card title="Data Access Object" icon="database">
+    **`ConversorDAO.java`** — A Java record that maps directly to the JSON fields returned by the API (`base_code`, `target_code`, `conversion_rate`). Gson deserializes the HTTP response body into this type automatically.
+  </Card>
+  <Card title="Domain Model" icon="cube">
+    **`Conversor.java`** — Wraps a `ConversorDAO` and exposes a `calculo(double)` method that multiplies the user-supplied amount by the fetched conversion rate.
+  </Card>
+</CardGroup>
+
+## Package structure
+
+```
+src/com/AnthonyChuan/Conversor/
+├── main.java                   # Entry point
+├── DAO/
+│   └── ConversorDAO.java       # API response record
+├── Metodos/
+│   ├── ConvertirMonedas.java   # HTTP service
+│   └── Decisiones.java         # Menu and currency mapping
+└── Modelos/
+    └── Conversor.java          # Domain model + calculation
+```
+
+## Data flow
+
+The following steps trace a single conversion from the moment the user launches the program to the moment the result is printed.
+
+```
+User input
+    │
+    ▼
+Decisiones.ingreseValorACambiar()   ← prompts for the numeric amount
+    │
+    ▼
+Decisiones.imprimirMenu()           ← prints the currency selection menu
+    │
+    ▼
+Decisiones.moneda1() / moneda2()    ← maps menu selection to ISO code (e.g. "1" → "USD")
+    │
+    ▼
+ConvertirMonedas.valorConversion()  ← builds the API URL, sends HTTP GET
+    │
+    ▼
+ExchangeRate-API                    ← returns JSON with conversion_rate
+    │
+    ▼
+Gson.fromJson()                     ← deserializes JSON into ConversorDAO record
+    │
+    ▼
+new Conversor(conversorDAO)         ← wraps DAO in domain model
+    │
+    ▼
+Conversor.calculo(valorcambiar)     ← amount × conversion_rate
+    │
+    ▼
+System.out.println()                ← prints result to console
+```
+
+## Application lifecycle
+
+<Steps>
+  <Step title="Prompt for amount">
+    `Decisiones.ingreseValorACambiar()` prints `"Ingrese el valor que desea cambiar"`. The user types an integer that is read by `Scanner.nextInt()`.
+  </Step>
+  <Step title="Display the currency menu">
+    `Decisiones.imprimirMenu()` prints the numbered list of supported currencies. The user enters either a menu number (1–4) or a raw ISO 4217 code.
+  </Step>
+  <Step title="Resolve currency codes">
+    `Decisiones.moneda1()` and `Decisiones.moneda2()` translate numeric selections to ISO codes. Unrecognised inputs are passed through as-is, allowing any valid ISO code to be used directly.
+  </Step>
+  <Step title="Fetch the exchange rate">
+    `ConvertirMonedas.valorConversion(moneda1, moneda2)` constructs the API URL, sends an HTTP GET request using `java.net.http.HttpClient`, and receives the JSON response.
+  </Step>
+  <Step title="Deserialize the response">
+    Gson maps the JSON body to a `ConversorDAO` record using field names that match the API response (`base_code`, `target_code`, `conversion_rate`).
+  </Step>
+  <Step title="Calculate and display">
+    A `Conversor` is constructed from the `ConversorDAO`. Its `calculo(valorcambiar)` method multiplies the user's amount by the conversion rate, and the result is printed to the console alongside the target currency code.
+  </Step>
+</Steps>

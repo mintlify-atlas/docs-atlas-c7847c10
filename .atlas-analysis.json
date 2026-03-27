@@ -1,0 +1,42 @@
+{
+  "projectType": "general",
+  "projectName": "Currency Converter with API",
+  "projectDescription": "A Java console application that converts between currencies in real time using the ExchangeRate-API.",
+  "theme": "luma",
+  "primaryColor": "#2563EB",
+  "lightColor": "#EFF6FF",
+  "darkColor": "#1E3A8A",
+  "navigation": {
+    "groups": [
+      {
+        "group": "Get Started",
+        "pages": ["introduction", "quickstart"]
+      },
+      {
+        "group": "How It Works",
+        "pages": ["architecture", "currency-codes", "api-integration"]
+      },
+      {
+        "group": "Reference",
+        "pages": ["class-reference", "configuration", "troubleshooting"]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Real-time currency conversion via ExchangeRate-API",
+    "Support for USD, PEN, ARS, COP, and any valid ISO 4217 currency code",
+    "Interactive console menu for selecting source and target currencies",
+    "Layered architecture: DAO, Model, Service, and entry point",
+    "Built with Java 17 using java.net.http.HttpClient and Google Gson"
+  ],
+  "publicApiSurface": [
+    "ConvertirMonedas.valorConversion(String moneda1, String moneda2): ConversorDAO",
+    "Conversor.calculo(double valorCambiar): Double",
+    "Decisiones.moneda1(String mon1): String",
+    "Decisiones.moneda2(String mon2): String",
+    "Decisiones.imprimirMenu(): void",
+    "Decisiones.ingreseValorACambiar(): void",
+    "ConversorDAO(String base_code, String target_code, double conversion_rate)",
+    "Conversor(ConversorDAO conversorDAO)"
+  ]
+}

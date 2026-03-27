@@ -1,80 +1,120 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quickstart
+description: Set up, compile, and run the Currency Converter with API application from scratch in five steps.
 ---
 
-## Get started in three steps
+Follow these steps to go from zero to a working currency conversion in your terminal.
 
-Get your documentation site running locally and make your first customization.
+<Warning>
+  The API key is hardcoded in `ConvertirMonedas.java` as the string `YOUR_API_KEY`. Before running the application, open that file and replace the placeholder with your own key from [exchangerate-api.com](https://www.exchangerate-api.com/). Requests made with the placeholder key will fail.
+</Warning>
 
-### Step 1: Set up your local environment
+<Steps>
+  <Step title="Install prerequisites">
+    Confirm that Java 17 or later is available:
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
+    ```bash
+    java -version
+    ```
 
-### Step 2: Deploy your changes
+    Download the Gson 2.11.0 JAR from Maven Central and save it to a known path, for example `lib/gson-2.11.0.jar`:
 
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+    ```bash
+    mkdir lib
+    curl -L -o lib/gson-2.11.0.jar \
+      https://repo1.maven.org/maven2/com/google/code/gson/gson/2.11.0/gson-2.11.0.jar
+    ```
+  </Step>
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+  <Step title="Get the source code">
+    Clone the repository or download and unzip the source archive:
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+    ```bash
+    git clone https://github.com/AnthonyChuan/ConversorDeMonedasConAPI.git
+    cd ConversorDeMonedasConAPI
+    ```
 
-### Step 3: Go live
+    The relevant source files are:
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+    ```
+    src/
+    └── com/AnthonyChuan/Conversor/
+        ├── main.java
+        ├── DAO/
+        │   └── ConversorDAO.java
+        ├── Metodos/
+        │   ├── ConvertirMonedas.java
+        │   └── Decisiones.java
+        └── Modelos/
+            └── Conversor.java
+    ```
+  </Step>
 
-## Next steps
+  <Step title="Replace the API key">
+    Open `src/com/AnthonyChuan/Conversor/Metodos/ConvertirMonedas.java` and find this line:
 
-Now that you have your docs running, explore these key features:
+    ```java
+    URI url = URI.create("https://v6.exchangerate-api.com/v6/YOUR_API_KEY/pair/" + moneda1 + "/" + moneda2);
+    ```
 
-<CardGroup cols={2}>
+    Replace `YOUR_API_KEY` with the key from your ExchangeRate-API account dashboard.
+  </Step>
 
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
+  <Step title="Compile the project">
+    From the project root, compile all source files with Gson on the classpath:
 
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
+    ```bash
+    javac -cp lib/gson-2.11.0.jar \
+      -d out \
+      src/com/AnthonyChuan/Conversor/DAO/ConversorDAO.java \
+      src/com/AnthonyChuan/Conversor/Modelos/Conversor.java \
+      src/com/AnthonyChuan/Conversor/Metodos/ConvertirMonedas.java \
+      src/com/AnthonyChuan/Conversor/Metodos/Decisiones.java \
+      src/com/AnthonyChuan/Conversor/main.java
+    ```
 
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
+    Compiled `.class` files are written to the `out/` directory.
+  </Step>
 
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
+  <Step title="Run the application">
+    Launch the application with both the `out/` directory and the Gson JAR on the classpath:
 
-</CardGroup>
+    ```bash
+    java -cp out:lib/gson-2.11.0.jar com.AnthonyChuan.Conversor.main
+    ```
 
-<Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
-</Note>
+    On Windows, replace the `:` classpath separator with `;`:
+
+    ```bash
+    java -cp out;lib\gson-2.11.0.jar com.AnthonyChuan.Conversor.main
+    ```
+  </Step>
+</Steps>
+
+## Example session
+
+The following shows a complete interactive session converting **100 USD to ARS**:
+
+```text
+Ingrese el valor que desea cambiar
+100
+******************************************************************************
+    Menu de monedas 
+1- USD(Dolares Americanos)
+2- PEN(Soles peruanos)
+3- ARS(Pesos Argentinos)
+4- COP(Pesos Colombianos)
+Si no encuentras la moneda que quieres cambiar ingresala bajo el mismo formato
+******************************************************************************
+Ingrese moneda por cambiar: 
+1
+Ingrese moneda de cambio: 
+3
+Su cambio es de: 89523.0 ARS
+```
+
+The user enters `100` as the amount, selects `1` for USD as the source currency, and `3` for ARS as the target currency. The application fetches the live rate from ExchangeRate-API and prints the converted amount.
+
+<Tip>
+  Instead of choosing a menu number, you can type an ISO 4217 currency code directly at either currency prompt. For example, entering `EUR` or `JPY` works without any code changes — the application passes your input straight to the API.
+</Tip>

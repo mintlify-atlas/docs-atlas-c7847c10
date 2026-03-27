@@ -1,0 +1,119 @@
+---
+title: 'API integration'
+description: 'How the application fetches live exchange rates from ExchangeRate-API, deserializes the response, and handles errors.'
+---
+
+The application uses the ExchangeRate-API pair endpoint to retrieve a single conversion rate between two currencies. The HTTP call is made with the built-in `java.net.http.HttpClient` introduced in Java 11, so no additional HTTP library is required.
+
+## Endpoint
+
+Each request targets the `/pair` endpoint:
+
+```text
+https://v6.exchangerate-api.com/v6/{API_KEY}/pair/{FROM}/{TO}
+```
+
+| Segment     | Description                                           |
+|-------------|-------------------------------------------------------|
+| `{API_KEY}` | Your personal API key from exchangerate-api.com       |
+| `{FROM}`    | ISO 4217 code for the source currency, e.g. `USD`     |
+| `{TO}`      | ISO 4217 code for the target currency, e.g. `PEN`     |
+
+Example for USD → PEN:
+
+```text
+https://v6.exchangerate-api.com/v6/YOUR_API_KEY/pair/USD/PEN
+```
+
+## JSON response
+
+The API returns a JSON object. The fields used by this application are highlighted below:
+
+```json
+{
+  "result": "success",
+  "documentation": "https://www.exchangerate-api.com/docs",
+  "terms_of_use": "https://www.exchangerate-api.com/terms",
+  "time_last_update_unix": 1711497602,
+  "time_last_update_utc": "Fri, 27 Mar 2026 00:00:02 +0000",
+  "time_next_update_unix": 1711584002,
+  "time_next_update_utc": "Sat, 28 Mar 2026 00:00:02 +0000",
+  "base_code": "USD",
+  "target_code": "PEN",
+  "conversion_rate": 3.7148
+}
+```
+
+Only `base_code`, `target_code`, and `conversion_rate` are read by the application. The remaining fields are ignored during deserialization.
+
+## ConversorDAO — mapping JSON to Java
+
+`ConversorDAO` is a Java record whose field names match the API response keys exactly:
+
+```java
+public record ConversorDAO(String base_code, String target_code, double conversion_rate) {}
+```
+
+Because the record field names are identical to the JSON property names, Gson can deserialize the response body without any custom type adapters:
+
+```java
+return new Gson().fromJson(response.body(), ConversorDAO.class);
+```
+
+Gson reads `base_code`, `target_code`, and `conversion_rate` from the JSON object and populates the corresponding record components.
+
+## HTTP client
+
+`ConvertirMonedas.valorConversion()` builds and sends the request using `java.net.http.HttpClient`:
+
+```java
+public ConversorDAO valorConversion(String moneda1, String moneda2) {
+    URI url = URI.create(
+        "https://v6.exchangerate-api.com/v6/YOUR_API_KEY/pair/" + moneda1 + "/" + moneda2
+    );
+    HttpClient client = HttpClient.newHttpClient();
+    HttpRequest request = HttpRequest.newBuilder().uri(url).build();
+    try {
+        HttpResponse<String> response = client.send(
+            request, HttpResponse.BodyHandlers.ofString()
+        );
+        return new Gson().fromJson(response.body(), ConversorDAO.class);
+    } catch (Exception e) {
+        e.printStackTrace();
+        throw new RuntimeException("Moneda no hallada");
+    }
+}
+```
+
+`HttpClient.newHttpClient()` creates a client with default settings. The request is a plain HTTP GET — no headers or body are needed because the API key and currency codes are embedded in the URL path.
+
+## Getting an API key
+
+1. Go to [exchangerate-api.com](https://www.exchangerate-api.com) and create a free account.
+2. Copy the API key shown on your dashboard.
+3. Open `ConvertirMonedas.java` and replace `YOUR_API_KEY` in the URL string with your actual key:
+
+```java
+URI url = URI.create(
+    "https://v6.exchangerate-api.com/v6/abc123yourkeyhere/pair/" + moneda1 + "/" + moneda2
+);
+```
+
+<Warning>
+  Never commit your API key to version control. Add it through an environment variable or a configuration file that is listed in `.gitignore`. Exposing your key in a public repository can lead to unauthorized usage and unexpected billing.
+</Warning>
+
+## Error handling
+
+If the HTTP request or JSON deserialization fails for any reason — network error, invalid currency code, expired API key — the `catch` block in `ConvertirMonedas.valorConversion()` prints the stack trace and throws a `RuntimeException` with the message `"Moneda no hallada"`.
+
+This exception propagates up to `main.java`, where it is caught by the outer `try/catch`:
+
+```java
+catch (Exception e) {
+    System.out.println(e.getMessage()); // prints "Moneda no hallada"
+    System.out.println("Hasta luego");
+}
+```
+
+The application then exits cleanly without a raw stack trace visible to the end user.

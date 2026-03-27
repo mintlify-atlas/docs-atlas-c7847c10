@@ -1,0 +1,221 @@
+---
+title: 'Troubleshooting'
+description: 'Solutions for common errors encountered when building and running the Currency Converter project.'
+---
+
+<AccordionGroup>
+
+  <Accordion title='RuntimeException: "Moneda no hallada"'>
+
+    **Symptom**
+
+    The application prints a stack trace to stderr and then throws:
+
+    ```
+    java.lang.RuntimeException: Moneda no hallada
+    ```
+
+    **Causes**
+
+    The `catch` block in `ConvertirMonedas.valorConversion()` catches all exceptions and re-throws this message. Common root causes:
+
+    - The currency code is not recognized by ExchangeRate-API (e.g., a typo like `"USDD"`).
+    - The API key in `ConvertirMonedas.java` is still the placeholder `YOUR_API_KEY`.
+    - The API key has expired or been revoked.
+    - A network error prevented the HTTP request from completing.
+
+    **Fix**
+
+    1. Confirm the currency code is a valid ISO 4217 three-letter code.
+    2. Replace `YOUR_API_KEY` in `ConvertirMonedas.java` with your actual key from [https://www.exchangerate-api.com](https://www.exchangerate-api.com).
+    3. Check your internet connection.
+    4. Log the raw `response.body()` before passing it to Gson to inspect the actual API error payload.
+
+    ```java Debug: print the raw response
+    HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+    System.out.println(response.body()); // add this line temporarily
+    return new Gson().fromJson(response.body(), ConversorDAO.class);
+    ```
+
+  </Accordion>
+
+  <Accordion title="InputMismatchException — decimal number entered for amount">
+
+    **Symptom**
+
+    When prompted for the amount to convert, entering a decimal number (e.g., `10.5`) causes:
+
+    ```
+    java.util.InputMismatchException
+    ```
+
+    The program then prints `"Hasta luego"` and exits.
+
+    **Cause**
+
+    The amount variable is declared as `int` and read with `Scanner.nextInt()`. The scanner cannot parse a floating-point literal into an integer and throws `InputMismatchException`.
+
+    ```java main.java — current declaration
+    int valorcambiar;
+    valorcambiar = teclado.nextInt();
+    ```
+
+    **Fix**
+
+    Change the variable type and scanner method to accept decimal input:
+
+    ```java main.java — updated declaration
+    double valorcambiar;
+    valorcambiar = teclado.nextDouble();
+    ```
+
+    The `calculo()` method in `Conversor` already accepts a `double`, so no further changes are needed downstream.
+
+  </Accordion>
+
+  <Accordion title="ClassNotFoundException / NoClassDefFoundError for Gson at runtime">
+
+    **Symptom**
+
+    The application compiles successfully but fails at runtime with:
+
+    ```
+    Exception in thread "main" java.lang.NoClassDefFoundError: com/google/gson/Gson
+    ```
+
+    or:
+
+    ```
+    Exception in thread "main" java.lang.ClassNotFoundException: com.google.gson.Gson
+    ```
+
+    **Cause**
+
+    The Gson JAR (`gson-2.11.0.jar`) was included on the classpath at compile time but not at runtime. The JVM cannot find the class when `ConvertirMonedas.valorConversion()` instantiates `new Gson()`.
+
+    **Fix**
+
+    Include the Gson JAR in the `-cp` argument of the `java` command:
+
+    ```bash Linux / macOS
+    java -cp "out:lib/gson-2.11.0.jar" com.AnthonyChuan.Conversor.main
+    ```
+
+    ```bash Windows
+    java -cp "out;lib/gson-2.11.0.jar" com.AnthonyChuan.Conversor.main
+    ```
+
+    <Tip>
+      The classpath at runtime must exactly mirror the classpath used at compile time. Both must include every JAR the code depends on.
+    </Tip>
+
+  </Accordion>
+
+  <Accordion title='Compilation fails: "package com.google.gson does not exist"'>
+
+    **Symptom**
+
+    Running `javac` produces:
+
+    ```
+    error: package com.google.gson does not exist
+    import com.google.gson.Gson;
+                         ^
+    ```
+
+    **Cause**
+
+    The Gson JAR is not on the classpath supplied to `javac`. The compiler cannot resolve the `Gson` import in `ConvertirMonedas.java`.
+
+    **Fix**
+
+    Add `-cp lib/gson-2.11.0.jar` (or the correct path to the JAR) to your compile command:
+
+    ```bash
+    javac -cp lib/gson-2.11.0.jar -d out \
+      src/com/AnthonyChuan/Conversor/DAO/ConversorDAO.java \
+      src/com/AnthonyChuan/Conversor/Metodos/ConvertirMonedas.java \
+      src/com/AnthonyChuan/Conversor/Metodos/Decisiones.java \
+      src/com/AnthonyChuan/Conversor/Modelos/Conversor.java \
+      src/com/AnthonyChuan/Conversor/main.java
+    ```
+
+    If you have not yet downloaded the JAR, fetch it from Maven Central:
+
+    ```bash
+    curl -L -o lib/gson-2.11.0.jar \
+      https://repo1.maven.org/maven2/com/google/code/gson/gson/2.11.0/gson-2.11.0.jar
+    ```
+
+  </Accordion>
+
+  <Accordion title="API key expired or invalid — 401 response">
+
+    **Symptom**
+
+    The application throws `RuntimeException: Moneda no hallada`. Printing the raw response body (see debugging tip above) reveals:
+
+    ```json
+    {
+      "result": "error",
+      "error-type": "invalid-key"
+    }
+    ```
+
+    or `"error-type": "inactive-account"`.
+
+    **Cause**
+
+    ExchangeRate-API returned an error JSON object instead of a valid pair response. Gson attempts to deserialize it into `ConversorDAO` and either fails or returns a record with `null` fields, causing a downstream exception.
+
+    **Fix**
+
+    1. Log in to your ExchangeRate-API dashboard and verify the key is active.
+    2. If the key has been regenerated, update the string in `ConvertirMonedas.java`:
+
+    ```java ConvertirMonedas.java
+    URI url = URI.create(
+        "https://v6.exchangerate-api.com/v6/YOUR_NEW_KEY/pair/" + moneda1 + "/" + moneda2
+    );
+    ```
+
+    3. Free-tier accounts expire if the account is inactive. Reactivate from the dashboard.
+
+  </Accordion>
+
+  <Accordion title="Network timeout — no internet connection">
+
+    **Symptom**
+
+    The program hangs for an extended period then throws:
+
+    ```
+    RuntimeException: Moneda no hallada
+    ```
+
+    The stack trace printed before it includes `java.net.ConnectException` or `java.net.UnknownHostException`.
+
+    **Cause**
+
+    `HttpClient.send()` is a blocking call with no explicit timeout configured. If the machine has no internet access or DNS cannot resolve `v6.exchangerate-api.com`, the call either blocks until the OS-level TCP timeout fires or fails immediately with a connection error. Either way, the `catch (Exception e)` block in `valorConversion()` catches it and re-throws `RuntimeException`.
+
+    **Fix**
+
+    1. Verify internet connectivity and that `v6.exchangerate-api.com` is reachable.
+    2. To prevent indefinite blocking, configure a connect and request timeout on the `HttpClient`:
+
+    ```java ConvertirMonedas.java — with timeout
+    HttpClient client = HttpClient.newBuilder()
+        .connectTimeout(Duration.ofSeconds(10))
+        .build();
+    HttpRequest request = HttpRequest.newBuilder()
+        .uri(url)
+        .timeout(Duration.ofSeconds(10))
+        .build();
+    ```
+
+    This requires `import java.time.Duration;`.
+
+  </Accordion>
+
+</AccordionGroup>

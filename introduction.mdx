@@ -1,0 +1,50 @@
+---
+title: Introduction
+description: An overview of the Currency Converter with API project, its features, and what you need to get started.
+---
+
+The Currency Converter with API is a Java 17 console application that converts monetary amounts between currencies in real time. It calls the [ExchangeRate-API](https://www.exchangerate-api.com/) to fetch live exchange rates, applies the rate to an amount you provide, and prints the converted result.
+
+<CardGroup cols={2}>
+  <Card title="Real-time exchange rates" icon="arrow-right-arrow-left">
+    Fetches live conversion rates from ExchangeRate-API for any supported currency pair.
+  </Card>
+  <Card title="Menu-driven interface" icon="list">
+    Four built-in currencies are selectable by number. Any ISO 4217 currency code can also be typed directly.
+  </Card>
+  <Card title="Minimal dependencies" icon="box">
+    Requires only the Gson library on top of the Java standard library — no build tool required.
+  </Card>
+  <Card title="Extensible currency support" icon="globe">
+    Not limited to the menu options. Any currency code supported by ExchangeRate-API works out of the box.
+  </Card>
+</CardGroup>
+
+## Supported currencies
+
+The interactive menu exposes four currencies by number:
+
+| Number | Code | Currency             |
+| ------ | ---- | -------------------- |
+| 1      | USD  | US Dollar            |
+| 2      | PEN  | Peruvian Sol         |
+| 3      | ARS  | Argentine Peso       |
+| 4      | COP  | Colombian Peso       |
+
+You are not limited to these four. At either currency prompt you can type any valid [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217) currency code (for example `EUR`, `BRL`, or `JPY`) and the application will resolve it directly against ExchangeRate-API.
+
+## External dependency
+
+The application depends on **ExchangeRate-API** (`https://v6.exchangerate-api.com`) to retrieve conversion rates. You must supply a valid API key. A free-tier account provides enough requests for personal use. Sign up at [exchangerate-api.com](https://www.exchangerate-api.com/).
+
+## Prerequisites
+
+Before running the project you need:
+
+- **Java 17 or later** — the project uses records and the `java.net.http` HTTP client introduced in Java 11, compiled targeting Java 17.
+- **Gson 2.11.0** — the only runtime dependency. Download the JAR from the [Maven Central repository](https://search.maven.org/artifact/com.google.code.gson/gson/2.11.0/jar) and place it somewhere on your classpath when compiling and running.
+- An **ExchangeRate-API key** — replace the placeholder `YOUR_API_KEY` in `ConvertirMonedas.java` with your own key.
+
+<Note>
+  The amount to convert is read as a whole integer. Decimal values are not accepted — entering `10.5` will cause an `InputMismatchException` and the program will exit with an error message.
+</Note>

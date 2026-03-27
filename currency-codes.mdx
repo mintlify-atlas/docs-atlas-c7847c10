@@ -1,0 +1,87 @@
+---
+title: 'Currency codes'
+description: 'The currencies built into the menu and how to use any ISO 4217 currency code directly at the prompt.'
+---
+
+The application supports four currencies through its numbered menu and accepts any valid ISO 4217 code as a free-text fallback.
+
+## Built-in menu options
+
+When the application runs, `Decisiones.imprimirMenu()` prints the following menu:
+
+```text
+******************************************************************************
+    Menu de monedas 
+1- USD(Dolares Americanos)
+2- PEN(Soles peruanos)
+3- ARS(Pesos Argentinos)
+4- COP(Pesos Colombianos)
+Si no encuentras la moneda que quieres cambiar ingresala bajo el mismo formato
+******************************************************************************
+```
+
+Enter the number that corresponds to the currency you want.
+
+## How menu numbers map to ISO codes
+
+The `Decisiones` class uses a `switch` statement to translate each menu number into its ISO 4217 code before the API request is made:
+
+```java
+public String moneda1(String mon1) {
+    switch (mon1) {
+        case "1": mon1 = "USD"; break;  // US Dollar
+        case "2": mon1 = "PEN"; break;  // Peruvian Sol
+        case "3": mon1 = "ARS"; break;  // Argentine Peso
+        case "4": mon1 = "COP"; break;  // Colombian Peso
+        default: return mon1;            // pass through as-is
+    }
+    return mon1;
+}
+```
+
+The same logic applies to `moneda2()` for the target currency.
+
+## Using any ISO 4217 code directly
+
+If you type anything other than `1`–`4` at the currency prompt, the `default` branch of the switch returns your input unchanged. This means you can type any three-letter ISO 4217 code and the application forwards it directly to the API.
+
+For example, to convert from Euros to British Pounds:
+
+```text
+Ingrese moneda por cambiar:
+EUR
+Ingrese moneda de cambio:
+GBP
+```
+
+<Tip>
+  ISO 4217 currency codes are always three uppercase letters, for example `USD`, `EUR`, `JPY`. Make sure to type them in uppercase.
+</Tip>
+
+<Note>
+  The ExchangeRate-API endpoint is case-sensitive. Typing `usd` instead of `USD` will cause the request to fail. Always use uppercase ISO codes.
+</Note>
+
+## Example currency codes
+
+The following codes are accepted by ExchangeRate-API and can be entered directly at the prompt:
+
+| Code | Currency                  | Country / Region     |
+|------|---------------------------|----------------------|
+| USD  | US Dollar                 | United States        |
+| EUR  | Euro                      | European Union       |
+| GBP  | British Pound Sterling    | United Kingdom       |
+| JPY  | Japanese Yen              | Japan                |
+| BRL  | Brazilian Real            | Brazil               |
+| MXN  | Mexican Peso              | Mexico               |
+| COP  | Colombian Peso            | Colombia             |
+| PEN  | Peruvian Sol              | Peru                 |
+| ARS  | Argentine Peso            | Argentina            |
+| CLP  | Chilean Peso              | Chile                |
+| CAD  | Canadian Dollar           | Canada               |
+| AUD  | Australian Dollar         | Australia            |
+| CHF  | Swiss Franc               | Switzerland          |
+| CNY  | Chinese Yuan Renminbi     | China                |
+| INR  | Indian Rupee              | India                |
+
+This list is not exhaustive. ExchangeRate-API supports over 160 currencies. Refer to the [ExchangeRate-API supported currencies page](https://www.exchangerate-api.com/docs/supported-currencies) for the full list.
